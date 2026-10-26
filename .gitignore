@@ -1,0 +1,13 @@
+*.pyc
+.DS_Store
+__pycache__/
+/private-kit-bundle*/
+/deps/
+*.pem
+*.key
+*.tar.gz
+*.zip
+/dist/
+/audit/
+/reports/
+.env

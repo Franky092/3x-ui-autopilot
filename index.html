@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3X-UI Autopilot: подключение</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Вставьте ссылку-подписку, выберите устройство: покажу, какое приложение поставить и как подключиться. Всё считается в браузере.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b7285'/%3E%3Cpath d='M32 12 14 22v12c0 11 8 17 18 20 10-3 18-9 18-20V22z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m24 33 6 6 11-12' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#14202b;--mute:#5b6b7a;--line:#d8e0e7;--accent:#0b7285;--accent-ink:#fff;--ok:#2b8a3e;--bad:#c92a2a;--radius:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#0e141a;--card:#16202a;--ink:#e6edf3;--mute:#93a4b4;--line:#263543;--accent:#3bc9db;--accent-ink:#06222a;--ok:#69db7c;--bad:#ff8787}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:760px;margin:0 auto;padding:18px 16px 0}
+.brand{font-weight:700;letter-spacing:.2px}.brand span{color:var(--accent)}
+.lang button{background:none;border:1px solid var(--line);color:var(--mute);padding:4px 10px;border-radius:8px;cursor:pointer;font:inherit;font-size:14px}
+.lang button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:8px 16px 48px}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);line-height:1.2;margin:18px 0 6px}
+.lead{color:var(--mute);margin:0 0 20px}
+.privacy{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;color:var(--mute);font-size:14px;margin-bottom:22px}
+section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+h2{display:flex;align-items:center;gap:10px;font-size:1.1rem;margin:0 0 12px}
+.num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:700}
+input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px}
+input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+.msg{min-height:1.4em;margin:8px 0 0;font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button{padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit}
+.tabs button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.apps{display:grid;gap:12px;margin-top:14px}
+.app{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.app h3{margin:0 0 2px;font-size:1.05rem}.app p{margin:0 0 10px;color:var(--mute);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);text-decoration:none;cursor:pointer;font:inherit;font-size:15px}
+.btn.ghost{background:none;color:var(--accent)}.btn[aria-disabled=true]{opacity:.45;pointer-events:none}
+ol{margin:8px 0 0;padding-left:22px}li{margin:4px 0}
+.hint{color:var(--mute);font-size:14px}
+pre{margin:8px 0;padding:12px;border-radius:10px;background:var(--card);border:1px solid var(--line);overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre}
+h4{margin:14px 0 4px;font-size:1rem}
+footer{max-width:760px;margin:0 auto;padding:0 16px 40px;color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">3X-UI <span>Autopilot</span></div>
+  <div class="lang" role="group" aria-label="Language"><button id="l-ru" aria-pressed="true">RU</button> <button id="l-en" aria-pressed="false">EN</button></div>
+</header>
+<main>
+  <h1 id="t-title"></h1>
+  <p class="lead" id="t-lead"></p>
+  <div class="privacy"><span aria-hidden="true">🔒</span><span id="t-privacy"></span></div>
+
+  <section>
+    <h2><span class="num">1</span><span id="t-step1"></span></h2>
+    <input type="text" id="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://203.0.113.10/…/…">
+    <p class="msg" id="msg" role="status"></p>
+    <p class="hint" id="t-where"></p>
+  </section>
+
+  <section id="s2" hidden>
+    <h2><span class="num">2</span><span id="t-step2"></span></h2>
+    <div class="tabs" id="platforms" role="group"></div>
+    <div id="pmBox" class="row" style="margin-top:14px" hidden>
+      <span class="hint" id="t-pm"></span>
+      <div class="tabs" id="pms" role="group"></div>
+      <p class="hint" style="flex-basis:100%;margin:0" id="t-pmhint"></p>
+    </div>
+    <div id="clashBox" hidden>
+      <p class="hint" style="margin:14px 0 6px" id="t-clash"></p>
+      <input type="text" id="clash" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://203.0.113.10/…/…">
+      <p class="msg" id="clashMsg" role="status"></p>
+    </div>
+    <div class="apps" id="apps"></div>
+  </section>
+
+  <section id="s3" hidden>
+    <h2><span class="num">3</span><span id="t-step3"></span></h2>
+    <ol id="steps"></ol>
+    <p class="hint" id="t-fail"></p>
+  </section>
+</main>
+<footer id="t-foot"></footer>
+
+<script id="logic">
+"use strict";
+/* Логика без обращения к DOM: её же проверяют тесты (tools/test/connect.test.js). */
+var APPS = {
+  happ:     { name: "Happ",            site: "https://www.happ.su/",                               deep: function (u) { return "happ://add/" + u; } },
+  hiddify:  { name: "Hiddify",         site: "https://hiddify.com/",                               deep: function (u, n) { return "hiddify://import/" + u + "#" + encodeURIComponent(n); } },
+  karing:   { name: "Karing",          site: "https://karing.app/",                                deep: function (u, n) { return "karing://install-config?url=" + encodeURIComponent(u) + "&name=" + encodeURIComponent(n); } },
+  streisand:{ name: "Streisand",       site: "https://apps.apple.com/app/streisand/id6450534064",  deep: function (u) { return "streisand://import/" + u; } },
+  v2rayng:  { name: "v2rayNG",         site: "https://github.com/2dust/v2rayNG/releases",          deep: null },
+  v2rayn:   { name: "v2rayN",          site: "https://github.com/2dust/v2rayN/releases",           deep: null },
+  clash:    { name: "Clash Verge Rev", site: "https://github.com/clash-verge-rev/clash-verge-rev/releases", deep: function (u, n) { return "clash://install-config?url=" + encodeURIComponent(u) + "&name=" + encodeURIComponent(n); } },
+  singbox:  { name: "sing-box",        site: "https://sing-box.sagernet.org/",                     deep: function (u, n) { return "sing-box://import-remote-profile?url=" + encodeURIComponent(u) + "#" + encodeURIComponent(n); } },
+  /* Роутеры на OpenWrt: ссылку вставляют в само приложение. needs – какая именно ссылка подписки нужна. */
+  nikki:    { name: "Nikki",           site: "https://github.com/nikkinikki-org/OpenWrt-nikki",    deep: null, router: true, needs: "clash" },
+  openclash:{ name: "OpenClash",       site: "https://github.com/vernesong/OpenClash",             deep: null, router: true, needs: "clash" },
+  passwall2:{ name: "PassWall 2",      site: "https://github.com/Openwrt-Passwall/openwrt-passwall2", deep: null, router: true, needs: "auto" }
+};
+var PLATFORMS = {
+  ios:     ["happ", "streisand", "hiddify", "karing"],
+  android: ["happ", "hiddify", "v2rayng", "karing", "singbox"],
+  windows: ["happ", "hiddify", "v2rayn", "clash", "karing"],
+  macos:   ["happ", "hiddify", "clash", "karing", "streisand"],
+  linux:   ["hiddify", "clash", "singbox"],
+  router:  ["nikki", "passwall2", "openclash"]
+};
+
+/* Быстрая установка на OpenWrt. Команды сверены с README проектов; docs – где смотреть актуальную версию.
+   opkg – OpenWrt до 24.10, apk – OpenWrt 25.12 и новее. */
+var ROUTER_INSTALL = {
+  nikki: {
+    docs: "https://github.com/nikkinikki-org/OpenWrt-nikki",
+    requires: { ru: "OpenWrt 24.10 или новее, firewall4.", en: "OpenWrt 24.10 or newer, firewall4." },
+    opkg: ["wget -O - https://github.com/nikkinikki-org/OpenWrt-nikki/raw/refs/heads/main/feed.sh | ash", "opkg update", "opkg install nikki luci-app-nikki"],
+    apk:  ["wget -O - https://github.com/nikkinikki-org/OpenWrt-nikki/raw/refs/heads/main/feed.sh | ash", "apk update", "apk add nikki luci-app-nikki"]
+  },
+  passwall2: {
+    docs: "https://github.com/Openwrt-Passwall/openwrt-passwall2",
+    requires: { ru: "Скачайте последнюю версию luci-app-passwall2 со страницы релизов (ссылка «Документация») в /tmp. Если не хватает xray-core, добавьте репозиторий PassWall по README.",
+                en: "Download the latest luci-app-passwall2 from the releases page (the “Docs” link) into /tmp. If xray-core is missing, add the PassWall repository as described in the README." },
+    opkg: ["cd /tmp", "opkg update", "opkg install luci-app-passwall2_*.ipk", "/etc/init.d/rpcd restart"],
+    apk:  ["cd /tmp", "apk update", "apk add --allow-untrusted luci-app-passwall2_*.apk", "/etc/init.d/rpcd restart"]
+  },
+  openclash: {
+    docs: "https://github.com/vernesong/OpenClash",
+    requires: { ru: "Скачайте последнюю версию luci-app-openclash со страницы релизов (ссылка «Документация») в /tmp. Нужен интернет на роутере: ядро скачивается при первом запуске.",
+                en: "Download the latest luci-app-openclash from the releases page (the “Docs” link) into /tmp. The router needs internet: the core is downloaded on first start." },
+    opkg: ["opkg update", "opkg remove dnsmasq && opkg install dnsmasq-full", "opkg install bash curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag kmod-nft-tproxy unzip luci-compat luci luci-base", "cd /tmp", "opkg install luci-app-openclash*.ipk"],
+    apk:  ["apk update", "apk del dnsmasq && apk add dnsmasq-full", "apk add bash curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag kmod-nft-tproxy unzip luci-compat luci luci-base", "cd /tmp", "apk add --allow-untrusted luci-app-openclash*.apk"]
+  }
+};
+
+/* Принимает только https-ссылку подписки: схема, имя хоста и непустой путь. Возвращает {ok, url, host} или {ok:false, reason}. */
+function parseSubscription(input) {
+  var text = String(input || "").trim();
+  if (!text) return { ok: false, reason: "empty" };
+  if (/\s/.test(text)) return { ok: false, reason: "spaces" };
+  var u;
+  try { u = new URL(text); } catch (e) { return { ok: false, reason: "invalid" }; }
+  if (u.protocol !== "https:") return { ok: false, reason: "scheme" };
+  if (!u.hostname || u.username || u.password) return { ok: false, reason: "invalid" };
+  if (u.pathname.replace(/\//g, "") === "") return { ok: false, reason: "path" };
+  return { ok: true, url: u.href, host: u.hostname };
+}
+
+/* Кнопки приложений платформы: открыть в приложении (если есть схема), страница загрузки, ссылка для копирования. */
+function appCards(platform, url, profileName, clashUrl) {
+  var keys = PLATFORMS[platform] || [];
+  return keys.map(function (key) {
+    var app = APPS[key];
+    var card = { key: key, name: app.name, site: app.site, deep: app.deep ? app.deep(url, profileName || "Autopilot") : null, copy: url };
+    if (app.router) {
+      card.router = true;
+      card.needs = app.needs;
+      card.copy = app.needs === "clash" ? (clashUrl || null) : url;  /* null: Clash-ссылку ещё не ввели */
+    }
+    return card;
+  });
+}
+
+/* Платформа по User-Agent (чтобы сразу открыть нужную вкладку). */
+function detectPlatform(ua) {
+  ua = String(ua || "");
+  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
+  if (/Android/i.test(ua)) return "android";
+  if (/Windows/i.test(ua)) return "windows";
+  if (/Macintosh|Mac OS X/i.test(ua)) return "macos";
+  if (/Linux|X11/i.test(ua)) return "linux";
+  return "windows";
+}
+
+var TEXT = {
+  ru: {
+    title: "Подключение к вашему VPN", lead: "Вставьте ссылку-подписку, выберите устройство: покажу, какое приложение поставить и как добавить сервер.",
+    privacy: "Страница работает только в вашем браузере: ссылка никуда не отправляется.",
+    step1: "Ссылка-подписка", where: "Её показывает команда autopilot (после установки и в «Пользователи → Ссылки») и файл /root/autopilot.txt на сервере.",
+    step2: "Ваше устройство и приложение", step3: "Как подключиться",
+    platforms: { ios: "iPhone / iPad", android: "Android", windows: "Windows", macos: "macOS", linux: "Linux", router: "Роутер (OpenWrt)" },
+    open: "Открыть в приложении", download: "Скачать", copy: "Скопировать ссылку", copied: "Скопировано",
+    manual: "В этом приложении ссылку добавляют вручную: скопируйте её и вставьте в «Подписки».",
+    steps: ["Скачайте приложение и откройте его.", "Нажмите «Открыть в приложении» (или «Скопировать ссылку» и в приложении «+» → «Добавить подписку» / «Импорт из буфера»).", "Обновите подписку и выберите сервер из списка.", "Включите подключение. Если сайт не открывается, выберите другой сервер из списка."],
+    fail: "Кнопка ничего не открыла? Приложение не установлено или не поддерживает такую ссылку: скопируйте ссылку и добавьте подписку вручную.",
+    clashLabel: "Ссылка Clash/Mihomo (для Nikki и OpenClash)", clashHint: "Её показывает команда autopilot user link (строка «для роутера»).",
+    need: { clash: "Нужна Clash-ссылка: вставьте её выше.", auto: "Подойдёт основная ссылка подписки." },
+    routerSteps: {
+      nikki: ["LuCI → Службы → Nikki → Профиль (Подписка).", "Добавьте подписку: вставьте Clash-ссылку, дайте имя.", "Нажмите «Обновить» и выберите этот профиль.", "Запустите Nikki."],
+      openclash: ["LuCI → Службы → OpenClash → Подписка конфига.", "Добавьте: вставьте Clash-ссылку, имя, сохраните.", "Нажмите «Обновить конфиг» и выберите его.", "Запустите OpenClash."],
+      passwall2: ["LuCI → Службы → PassWall 2 → Подписка узлов.", "Добавьте: вставьте основную ссылку подписки, сохраните.", "Нажмите «Обновить» и в «Основных настройках» выберите узел для TCP.", "Включите PassWall 2 и примените."]
+    },
+    routerNote: "Названия пунктов зависят от версии прошивки и языка интерфейса.",
+    auto: "Самый быстрый способ: на сервере выполните команду ниже — она выдаст готовую строку для роутера, которая сама поставит приложение и пропишет подписку.",
+    install: "Установка на роутер", installIntro: "Зайдите на роутер по SSH (ssh root@192.168.1.1) и выполните по порядку:", docs: "Документация", pm: "Менеджер пакетов:",
+    pmHint: "opkg – OpenWrt до 24.10, apk – OpenWrt 25.12 и новее (узнать: cat /etc/openwrt_release).", copyAll: "Скопировать команды",
+    need2: { clash: "Используйте Clash-ссылку (кнопка ниже).", auto: "Используйте основную ссылку (кнопка ниже)." },
+    err: { empty: "Вставьте ссылку.", spaces: "В ссылке не должно быть пробелов.", invalid: "Это не похоже на ссылку.", scheme: "Нужна ссылка вида https://…", path: "В ссылке нет пути подписки: нужна полная ссылка." },
+    ok: "Ссылка принята: ", foot: "3X-UI Autopilot. Ссылка-подписка даёт доступ к вашему серверу: не публикуйте её."
+  },
+  en: {
+    title: "Connect to your VPN", lead: "Paste your subscription link and pick a device: I'll show which app to install and how to add the server.",
+    privacy: "This page works only in your browser: the link is never sent anywhere.",
+    step1: "Subscription link", where: "The autopilot command shows it (after install and under Users → Links), and so does /root/autopilot.txt on the server.",
+    step2: "Your device and app", step3: "How to connect",
+    platforms: { ios: "iPhone / iPad", android: "Android", windows: "Windows", macos: "macOS", linux: "Linux", router: "Router (OpenWrt)" },
+    open: "Open in the app", download: "Download", copy: "Copy link", copied: "Copied",
+    manual: "This app has no one-tap import: copy the link and paste it under Subscriptions.",
+    steps: ["Download the app and open it.", "Tap “Open in the app” (or “Copy link”, then in the app “+” → “Add subscription” / “Import from clipboard”).", "Update the subscription and pick a server from the list.", "Turn the connection on. If a site does not open, pick another server from the list."],
+    fail: "Nothing opened? The app is missing or does not support this link: copy the link and add the subscription manually.",
+    clashLabel: "Clash/Mihomo link (for Nikki and OpenClash)", clashHint: "The autopilot user link command shows it (the “for router” line).",
+    need: { clash: "A Clash link is needed: paste it above.", auto: "The main subscription link will do." },
+    routerSteps: {
+      nikki: ["LuCI → Services → Nikki → Profile (Subscription).", "Add a subscription: paste the Clash link, give it a name.", "Press “Update” and select this profile.", "Start Nikki."],
+      openclash: ["LuCI → Services → OpenClash → Config Subscribe.", "Add: paste the Clash link, a name, save.", "Press “Update config” and select it.", "Start OpenClash."],
+      passwall2: ["LuCI → Services → PassWall 2 → Node Subscribe.", "Add: paste the main subscription link, save.", "Press “Update” and in Basic Settings choose a node for TCP.", "Turn PassWall 2 on and apply."]
+    },
+    routerNote: "Menu names depend on the firmware version and interface language.",
+    auto: "The fastest way: run the command below on the server — it prints a ready one-liner for the router that installs the app and sets the subscription for you.",
+    install: "Install on the router", installIntro: "Log in to the router over SSH (ssh root@192.168.1.1) and run in order:", docs: "Docs", pm: "Package manager:",
+    pmHint: "opkg – OpenWrt up to 24.10, apk – OpenWrt 25.12 and newer (check: cat /etc/openwrt_release).", copyAll: "Copy the commands",
+    need2: { clash: "Use the Clash link (button below).", auto: "Use the main link (button below)." },
+    err: { empty: "Paste the link.", spaces: "The link must not contain spaces.", invalid: "That does not look like a link.", scheme: "A link like https://… is required.", path: "The link has no subscription path: use the full link." },
+    ok: "Link accepted: ", foot: "3X-UI Autopilot. The subscription link gives access to your server: do not publish it."
+  }
+};
+
+if (typeof module !== "undefined") module.exports = { ROUTER_INSTALL: ROUTER_INSTALL, APPS: APPS, PLATFORMS: PLATFORMS, TEXT: TEXT, parseSubscription: parseSubscription, appCards: appCards, detectPlatform: detectPlatform };
+</script>
+
+<script id="ui">
+"use strict";
+(function () {
+  if (typeof document === "undefined") return;
+  var $ = function (id) { return document.getElementById(id); };
+  var lang = /^ru/i.test(navigator.language || "ru") ? "ru" : "en";
+  var platform = detectPlatform(navigator.userAgent);
+  var current = null, clash = null, pm = "opkg";
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+
+  function renderStatic() {
+    var t = TEXT[lang];
+    document.documentElement.lang = lang;
+    $("t-title").textContent = t.title; $("t-lead").textContent = t.lead; $("t-privacy").textContent = t.privacy;
+    $("t-step1").textContent = t.step1; $("t-where").textContent = t.where;
+    $("t-step2").textContent = t.step2; $("t-step3").textContent = t.step3; $("t-fail").textContent = t.fail; $("t-foot").textContent = t.foot;
+    $("l-ru").setAttribute("aria-pressed", String(lang === "ru")); $("l-en").setAttribute("aria-pressed", String(lang === "en"));
+    var steps = $("steps"); steps.textContent = "";
+    t.steps.forEach(function (s) { steps.appendChild(el("li", null, s)); });
+  }
+
+  function renderApps() {
+    var t = TEXT[lang], tabs = $("platforms"), apps = $("apps");
+    tabs.textContent = ""; apps.textContent = "";
+    Object.keys(PLATFORMS).forEach(function (key) {
+      var b = el("button", null, t.platforms[key]);
+      b.type = "button"; b.setAttribute("aria-pressed", String(key === platform));
+      b.addEventListener("click", function () { platform = key; renderApps(); });
+      tabs.appendChild(b);
+    });
+    if (!current) return;
+    $("clashBox").hidden = platform !== "router";
+    $("pmBox").hidden = platform !== "router";
+    $("t-clash").textContent = t.clashLabel + ". " + t.clashHint;
+    $("t-pm").textContent = t.pm; $("t-pmhint").textContent = t.pmHint;
+    var pms = $("pms"); pms.textContent = "";
+    ["opkg", "apk"].forEach(function (name) {
+      var b = el("button", null, name); b.type = "button"; b.setAttribute("aria-pressed", String(name === pm));
+      b.addEventListener("click", function () { pm = name; renderApps(); });
+      pms.appendChild(b);
+    });
+    $("s3").hidden = !current || platform === "router";
+    appCards(platform, current.url, "Autopilot", clash ? clash.url : null).forEach(function (card) {
+      var box = el("div", "app"); box.appendChild(el("h3", null, card.name));
+      box.appendChild(el("p", null, card.router ? (card.copy ? t.need2[card.needs] : t.need[card.needs]) : (card.deep ? "" : t.manual)));
+      if (card.router) {
+        var info = ROUTER_INSTALL[card.key], cmds = info[pm].join("\n");
+        box.appendChild(el("p", "hint", t.auto));
+        box.appendChild(el("pre", null, "autopilot router " + card.key));
+        box.appendChild(el("h4", null, t.install));
+        box.appendChild(el("p", "hint", t.installIntro));
+        var pre = el("pre", null, cmds); box.appendChild(pre);
+        box.appendChild(el("p", "hint", info.requires[lang]));
+        var cmdRow = el("div", "row");
+        var cc = el("button", "btn ghost", t.copyAll); cc.type = "button";
+        cc.addEventListener("click", function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(cmds).then(function () { cc.textContent = t.copied; setTimeout(function () { cc.textContent = t.copyAll; }, 1500); }, function () {});
+        });
+        var dd = el("a", "btn ghost", t.docs); dd.href = info.docs; dd.target = "_blank"; dd.rel = "noopener noreferrer";
+        cmdRow.appendChild(cc); cmdRow.appendChild(dd); box.appendChild(cmdRow);
+        box.appendChild(el("h4", null, t.step3));
+        var list = el("ol"); t.routerSteps[card.key].forEach(function (s) { list.appendChild(el("li", null, s)); });
+        box.appendChild(list); box.appendChild(el("p", "hint", t.routerNote));
+      }
+      var row = el("div", "row");
+      if (card.deep) { var open = el("a", "btn", t.open); open.href = card.deep; row.appendChild(open); }
+      if (card.router && !card.copy) { box.appendChild(row); apps.appendChild(box); return; }
+      var dl = el("a", "btn ghost", t.download); dl.href = card.site; dl.target = "_blank"; dl.rel = "noopener noreferrer"; row.appendChild(dl);
+      var cp = el("button", "btn ghost", t.copy); cp.type = "button";
+      cp.addEventListener("click", function () {
+        var done = function () { cp.textContent = t.copied; setTimeout(function () { cp.textContent = t.copy; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(card.copy).then(done, function () {});
+      });
+      row.appendChild(cp); box.appendChild(row); apps.appendChild(box);
+    });
+  }
+
+  function onInput() {
+    var t = TEXT[lang], msg = $("msg"), res = parseSubscription($("url").value);
+    current = res.ok ? res : null;
+    $("s2").hidden = !current;
+    if (!$("url").value.trim()) { msg.textContent = ""; msg.className = "msg"; }
+    else if (res.ok) { msg.textContent = t.ok + res.host; msg.className = "msg ok"; }
+    else { msg.textContent = t.err[res.reason]; msg.className = "msg bad"; }
+    renderApps();
+  }
+
+  function onClash() {
+    var t = TEXT[lang], msg = $("clashMsg"), res = parseSubscription($("clash").value);
+    clash = res.ok ? res : null;
+    if (!$("clash").value.trim()) { msg.textContent = ""; msg.className = "msg"; }
+    else if (res.ok) { msg.textContent = t.ok + res.host; msg.className = "msg ok"; }
+    else { msg.textContent = t.err[res.reason]; msg.className = "msg bad"; }
+    renderApps();
+  }
+
+  $("url").addEventListener("input", onInput);
+  $("clash").addEventListener("input", onClash);
+  $("l-ru").addEventListener("click", function () { lang = "ru"; renderStatic(); onInput(); });
+  $("l-en").addEventListener("click", function () { lang = "en"; renderStatic(); onInput(); });
+  renderStatic(); renderApps();
+})();
+</script>
+</body>
+</html>

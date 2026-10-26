@@ -1,0 +1,49 @@
+name: Checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  ubuntu:
+    # Установщик поддерживает Ubuntu 22.04 и 24.04 (Python 3.10 и 3.12): версии openssl, nginx и ядра различаются.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax and static checks
+        run: |
+          sh -n install.sh
+          sh -n autopilot/data/router.sh
+          shellcheck -S warning install.sh autopilot/data/router.sh
+      - name: Python tests
+        run: python3 -m unittest discover -s tests -t . -v
+      - name: Page tests
+        run: node --test tests/web/*.test.js
+      - name: Release consistency
+        run: python3 tools/release.py --check
+  debian:
+    # Debian 12 и 13: те же тесты в контейнере (без systemd и без сети установки).
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['debian:12', 'debian:13']
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
+    steps:
+      - name: Packages
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git ca-certificates python3 nodejs shellcheck openssl >/dev/null
+      - uses: actions/checkout@v4
+      - name: Checks and tests
+        run: |
+          sh -n install.sh
+          sh -n autopilot/data/router.sh
+          shellcheck -S warning install.sh autopilot/data/router.sh
+          python3 -m unittest discover -s tests -t . -v
+          node --test tests/web/*.test.js
+          python3 tools/release.py --check
