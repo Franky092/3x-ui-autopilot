@@ -7,26 +7,26 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Вставьте ссылку-подписку, выберите устройство: покажу, какое приложение поставить и как подключиться. Всё считается в браузере.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%236a3df0'/%3E%3Cpath d='M32 14 17 23v11c0 10 7 15 15 18 8-3 15-8 15-18V23z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m25 34 5 5 9-10' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%230b7285'/%3E%3Cpath d='M32 14 17 23v11c0 10 7 15 15 18 8-3 15-8 15-18V23z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m25 34 5 5 9-10' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-/* Hallmark · shape: app screen · genre: modern-minimal · theme: Ultraviolet (deal 1/3, seed single-purpose-tool-where-vpn-5710·9a57eaa9·2026-10-27·r0) · redesign: full
- * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: lavender and night by system theme, system faces (the page loads nothing from outside)
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Ultraviolet, recoloured to the launch-video palette (ink pills, teal accent) (deal 1/3, seed single-purpose-tool-where-vpn-5710·9a57eaa9·2026-10-27·r0) · redesign: full
+ * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: cool white and night by system theme, teal in place of violet, system faces (the page loads nothing from outside)
  * axes: light/geometric-sans/cool · posture: committed · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, a tool page has one honest shape; set the three steps on a numbered rail instead of stacked cards */
-/* Hallmark · answered F4 · the lang, platform and package-manager toggles are selected states of one control, not primary buttons; the one primary is .btn */
+/* Hallmark · answered F4 · the lang, platform and package-manager toggles are selected states of one control, not primary buttons; the primary is .btn */
 :root {
   color-scheme: light dark;
   --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
   --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-micro: 120ms; --dur-short: 220ms;
-  --color-error: oklch(52% 0.19 27); --color-success: oklch(50% 0.12 150);
+  --color-error: oklch(52% 0.19 27); --color-success: oklch(52% 0.11 165);
   --container: 760px; --gutter: 24px;
-  --color-paper: oklch(95% 0.02 300); --color-paper-2: oklch(92% 0.03 300); --color-paper-3: oklch(89% 0.035 300);
-  --color-ink: oklch(18% 0.02 300); --color-ink-2: oklch(28% 0.03 300); --color-muted: oklch(46% 0.05 300);
-  --color-rule: oklch(84% 0.04 300); --color-rule-2: oklch(70% 0.08 295);
-  --color-accent: oklch(50% 0.25 290); --color-accent-deep: oklch(43% 0.22 290); --color-accent-soft: oklch(86% 0.08 295);
-  --color-accent-ink: oklch(97% 0.01 300); --color-focus: oklch(50% 0.25 290);
+  --color-paper: oklch(97% 0.006 230); --color-paper-2: oklch(99% 0.003 230); --color-paper-3: oklch(94% 0.01 230);
+  --color-ink: oklch(20% 0.02 230); --color-ink-2: oklch(32% 0.025 230); --color-muted: oklch(50% 0.025 235);
+  --color-rule: oklch(90% 0.012 230); --color-rule-2: oklch(80% 0.02 230);
+  --color-accent: oklch(52% 0.09 205); --color-accent-deep: oklch(44% 0.085 205); --color-accent-soft: oklch(90% 0.04 200);
+  --color-accent-ink: oklch(98% 0.005 230); --color-focus: oklch(52% 0.09 205);
   --font-display: "Avenir Next", "Segoe UI", ui-rounded, ui-sans-serif, system-ui, sans-serif;
   --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-outlier: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -35,12 +35,12 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
-    --color-paper: oklch(14% 0.02 290); --color-paper-2: oklch(17.5% 0.025 290); --color-paper-3: oklch(21% 0.03 290);
-    --color-ink: oklch(92% 0.04 300); --color-ink-2: oklch(80% 0.05 300); --color-muted: oklch(68% 0.06 300);
-    --color-rule: oklch(28% 0.04 290); --color-rule-2: oklch(44% 0.07 292);
-    --color-accent: oklch(55% 0.25 290); --color-accent-deep: oklch(48% 0.24 290); --color-accent-soft: oklch(36% 0.09 293);
-    --color-accent-ink: oklch(97% 0.01 300); --color-focus: oklch(62% 0.22 290);
+    --color-error: oklch(72% 0.17 27); --color-success: oklch(80% 0.12 165);
+    --color-paper: oklch(17% 0.02 230); --color-paper-2: oklch(21% 0.02 230); --color-paper-3: oklch(25% 0.022 230);
+    --color-ink: oklch(94% 0.01 230); --color-ink-2: oklch(84% 0.015 230); --color-muted: oklch(70% 0.025 230);
+    --color-rule: oklch(29% 0.02 230); --color-rule-2: oklch(42% 0.03 230);
+    --color-accent: oklch(78% 0.12 205); --color-accent-deep: oklch(70% 0.11 205); --color-accent-soft: oklch(34% 0.06 205);
+    --color-accent-ink: oklch(18% 0.02 230); --color-focus: oklch(78% 0.12 205);
   }
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -61,12 +61,12 @@ h1, h2, h4 { text-transform: lowercase; }
 .bar, main, footer { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: 64px; border-bottom: var(--rule-hair) solid var(--color-rule); }
 .brand { font: var(--display-weight) var(--text-lg)/1 var(--font-display); letter-spacing: var(--tracking-display); }
-.brand span { color: var(--color-muted); }
+.brand span { color: var(--color-accent); }
 .lang { display: flex; gap: var(--space-2xs); }
 .lang button { min-width: 44px; min-height: 44px; padding: 0 var(--space-sm); border: 0; border-radius: var(--radius-pill); background: none; color: var(--color-muted); font: var(--display-weight) var(--text-sm)/1 var(--font-display); text-transform: lowercase; cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--color-rule-2); transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .lang button:hover { color: var(--color-ink); }
 .lang button:active { transform: scale(0.97); }
-.lang button[aria-pressed=true] { background: var(--color-accent); color: var(--color-accent-ink); box-shadow: none; }
+.lang button[aria-pressed=true] { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
 
 main { padding-block: var(--space-xl) var(--space-2xl); }
 h1 { max-width: 20ch; font-size: var(--text-3xl); }
@@ -94,7 +94,7 @@ section > .hint { margin-top: var(--space-xs); padding-left: var(--space-lg); }
 .tabs button { min-height: 44px; padding: 0 var(--space-md); border: 0; border-radius: var(--radius-pill); background: none; color: var(--color-ink); font: var(--display-weight) var(--text-sm)/1 var(--font-display); cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--color-rule-2); transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .tabs button:hover { box-shadow: inset 0 0 0 1.5px var(--color-ink); }
 .tabs button:active { transform: scale(0.97); }
-.tabs button[aria-pressed=true] { background: var(--color-accent); color: var(--color-accent-ink); box-shadow: none; }
+.tabs button[aria-pressed=true] { background: var(--color-ink); color: var(--color-paper); box-shadow: none; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
 .pmbox { margin-top: var(--space-md); }
 .pmbox .tabs { margin-top: 0; }
@@ -114,8 +114,8 @@ section#s2 > #clashBox { margin-left: calc(32px + var(--space-sm)); }
 .app .row { margin-top: var(--space-sm); }
 .app h4 { margin-top: var(--space-lg); font-size: var(--text-md); }
 
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-lg); border: 0; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--color-accent-ink); font: var(--display-weight) var(--text-sm)/1 var(--font-display); text-transform: lowercase; text-decoration: none; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
-.btn:hover { background: var(--color-accent-deep); }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-lg); border: 0; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-paper); font: var(--display-weight) var(--text-sm)/1 var(--font-display); text-transform: lowercase; text-decoration: none; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.btn:hover { background: var(--color-ink-2); }
 .btn:active { transform: scale(0.98); }
 .btn.ghost { background: none; color: var(--color-ink); box-shadow: inset 0 0 0 1.5px var(--color-ink); }
 .btn.ghost:hover { background: var(--color-paper-2); }
