@@ -7,6 +7,14 @@ from typing import Any
 from . import core
 
 
+PAGE_URL = "https://franky092.github.io/3x-ui-autopilot/"
+
+
+def page_url(sub_url: str) -> str:
+    """Адрес страницы «Подключение» с уже подставленной ссылкой подписки. Часть после # браузер на сервер не отправляет."""
+    return PAGE_URL + "#" + sub_url
+
+
 def _slashed(path: str) -> str:
     return "/" + path.strip("/") + "/"
 

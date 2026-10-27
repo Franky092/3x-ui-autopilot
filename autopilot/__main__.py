@@ -66,6 +66,9 @@ def show_links(api, name: str) -> None:
         if ui.qr(urls["auto"]):
             ui.hint(t("install.scan"))
         ui.out()
+        ui.out("  " + ui.bold(t("install.page")))
+        ui.out("  " + ui.accent(subscription.page_url(urls["auto"])))
+        ui.out()
         ui.out("  " + ui.bold(t("links.router")))
         ui.out("  Nikki, OpenClash: " + urls["clash"])
         ui.out("  PassWall 2: " + urls["auto"])
