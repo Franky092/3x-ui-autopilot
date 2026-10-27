@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%230b7285'/%3E%3Cpath d='M32 14 17 23v11c0 10 7 15 15 18 8-3 15-8 15-18V23z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m25 34 5 5 9-10' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 /* Hallmark · shape: app screen · genre: modern-minimal · theme: Ultraviolet, recoloured to the launch-video palette (ink pills, teal accent) (deal 1/3, seed single-purpose-tool-where-vpn-5710·9a57eaa9·2026-10-27·r0) · redesign: full
- * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: cool white only (no dark scheme, matching the launch video), teal in place of violet, system faces (the page loads nothing from outside)
+ * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: cool white by default with a dark theme behind a toggle (never by system setting), teal in place of violet, system faces (the page loads nothing from outside)
  * axes: light/geometric-sans/cool · posture: committed · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, a tool page has one honest shape; set the three steps on a numbered rail instead of stacked cards */
 /* Hallmark · answered F4 · the lang, platform and package-manager toggles are selected states of one control, not primary buttons; the primary is .btn */
@@ -33,6 +33,15 @@
   --radius-card: 16px; --radius-pill: 999px; --rule-hair: 1px;
   --tracking-display: -0.03em; --display-weight: 500;
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-error: oklch(72% 0.17 27); --color-success: oklch(80% 0.12 165);
+  --color-paper: oklch(17% 0.02 230); --color-paper-2: oklch(21% 0.02 230); --color-paper-3: oklch(25% 0.022 230);
+  --color-ink: oklch(94% 0.01 230); --color-ink-2: oklch(84% 0.015 230); --color-muted: oklch(70% 0.025 230);
+  --color-rule: oklch(29% 0.02 230); --color-rule-2: oklch(42% 0.03 230);
+  --color-accent: oklch(78% 0.12 205); --color-accent-deep: oklch(70% 0.11 205); --color-accent-soft: oklch(34% 0.06 205);
+  --color-accent-ink: oklch(18% 0.02 230); --color-focus: oklch(78% 0.12 205);
+}
 *, *::before, *::after { box-sizing: border-box; }
 html, body { overflow-x: clip; }
 html { scrollbar-color: var(--color-muted) var(--color-paper); }
@@ -52,6 +61,13 @@ h1, h2, h4 { text-transform: lowercase; }
 .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: 64px; border-bottom: var(--rule-hair) solid var(--color-rule); }
 .brand { font: var(--display-weight) var(--text-lg)/1 var(--font-display); letter-spacing: var(--tracking-display); }
 .brand span { color: var(--color-accent); }
+.tools { display: flex; align-items: center; gap: var(--space-xs); }
+.theme { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--radius-pill); background: none; color: var(--color-ink); cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--color-rule-2); transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.theme:hover { box-shadow: inset 0 0 0 1.5px var(--color-ink); }
+.theme:active { transform: scale(0.97); }
+.theme .sun { display: none; }
+:root[data-theme="dark"] .theme .sun { display: block; }
+:root[data-theme="dark"] .theme .moon { display: none; }
 .lang { display: flex; gap: var(--space-2xs); }
 .lang button { min-width: 44px; min-height: 44px; padding: 0 var(--space-sm); border: 0; border-radius: var(--radius-pill); background: none; color: var(--color-muted); font: var(--display-weight) var(--text-sm)/1 var(--font-display); text-transform: lowercase; cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--color-rule-2); transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .lang button:hover { color: var(--color-ink); }
@@ -126,11 +142,21 @@ footer { padding-block: var(--space-lg) var(--space-2xl); border-top: var(--rule
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 </style>
+<script id="theme-init">
+"use strict";
+try { if (localStorage.getItem("theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+</script>
 </head>
 <body>
 <div class="bar">
   <div class="brand">3X-UI <span>Autopilot</span></div>
-  <div class="lang" role="group" aria-label="Language"><button id="l-ru" aria-pressed="true">RU</button> <button id="l-en" aria-pressed="false">EN</button></div>
+  <div class="tools">
+    <button class="theme" id="theme" type="button" aria-label="Тёмная тема" title="Тёмная тема">
+      <svg class="moon" width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <svg class="sun" width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="lang" role="group" aria-label="Language"><button id="l-ru" aria-pressed="true">RU</button> <button id="l-en" aria-pressed="false">EN</button></div>
+  </div>
 </div>
 <main>
   <h1 id="t-title"></h1>
@@ -416,6 +442,26 @@ if (typeof module !== "undefined") module.exports = { ROUTER_INSTALL: ROUTER_INS
   $("l-ru").addEventListener("click", function () { lang = "ru"; renderStatic(); onInput(); });
   $("l-en").addEventListener("click", function () { lang = "en"; renderStatic(); onInput(); });
   renderStatic(); renderApps();
+})();
+</script>
+<script id="theme-ui">
+"use strict";
+(function () {
+  var root = document.documentElement, btn = document.getElementById("theme");
+  var LABEL = { ru: "Тёмная тема", en: "Dark theme" }, LABEL_LIGHT = { ru: "Светлая тема", en: "Light theme" };
+  function paint() {
+    var dark = root.getAttribute("data-theme") === "dark", l = /^ru/i.test(root.lang) ? "ru" : "en";
+    var text = (dark ? LABEL_LIGHT : LABEL)[l];
+    btn.setAttribute("aria-label", text); btn.title = text;
+  }
+  btn.addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") !== "dark";
+    if (dark) root.setAttribute("data-theme", "dark"); else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    paint();
+  });
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ["lang"] });
+  paint();
 })();
 </script>
 </body>
