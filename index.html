@@ -444,6 +444,20 @@ if (typeof module !== "undefined") module.exports = { ROUTER_INSTALL: ROUTER_INS
   renderStatic(); renderApps();
 })();
 </script>
+<script id="hash-init">
+"use strict";
+/* Ссылка после # (…/#https://хост/путь) подставляется в поле и сразу убирается из адресной строки; на сервер часть после # не уходит. */
+(function () {
+  var raw = (location.hash || "").slice(1);
+  if (!raw) return;
+  var link = raw;
+  try { link = decodeURIComponent(raw); } catch (e) {}
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  var field = document.getElementById("url");
+  field.value = link;
+  field.dispatchEvent(new Event("input"));
+})();
+</script>
 <script id="theme-ui">
 "use strict";
 (function () {
