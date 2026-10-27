@@ -10,12 +10,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%230b7285'/%3E%3Cpath d='M32 14 17 23v11c0 10 7 15 15 18 8-3 15-8 15-18V23z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m25 34 5 5 9-10' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 /* Hallmark · shape: app screen · genre: modern-minimal · theme: Ultraviolet, recoloured to the launch-video palette (ink pills, teal accent) (deal 1/3, seed single-purpose-tool-where-vpn-5710·9a57eaa9·2026-10-27·r0) · redesign: full
- * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: cool white and night by system theme, teal in place of violet, system faces (the page loads nothing from outside)
+ * nav: a top bar, wordmark and language switch · signature: the subscription link as one pill field that the whole page reads from · states: empty, invalid, accepted · ultraviolet: cool white only (no dark scheme, matching the launch video), teal in place of violet, system faces (the page loads nothing from outside)
  * axes: light/geometric-sans/cool · posture: committed · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, a tool page has one honest shape; set the three steps on a numbered rail instead of stacked cards */
 /* Hallmark · answered F4 · the lang, platform and package-manager toggles are selected states of one control, not primary buttons; the primary is .btn */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
   --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -32,16 +32,6 @@
   --font-outlier: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --radius-card: 16px; --radius-pill: 999px; --rule-hair: 1px;
   --tracking-display: -0.03em; --display-weight: 500;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-error: oklch(72% 0.17 27); --color-success: oklch(80% 0.12 165);
-    --color-paper: oklch(17% 0.02 230); --color-paper-2: oklch(21% 0.02 230); --color-paper-3: oklch(25% 0.022 230);
-    --color-ink: oklch(94% 0.01 230); --color-ink-2: oklch(84% 0.015 230); --color-muted: oklch(70% 0.025 230);
-    --color-rule: oklch(29% 0.02 230); --color-rule-2: oklch(42% 0.03 230);
-    --color-accent: oklch(78% 0.12 205); --color-accent-deep: oklch(70% 0.11 205); --color-accent-soft: oklch(34% 0.06 205);
-    --color-accent-ink: oklch(18% 0.02 230); --color-focus: oklch(78% 0.12 205);
-  }
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { overflow-x: clip; }
