@@ -338,12 +338,15 @@ def choose_sni(wanted: str | None, *, exclude: tuple[str, ...] = ()) -> str:
 
 
 def credentials_text(plan: Plan, links: list[str], sub_url: str = "", user: str = "admin") -> str:
+    from . import subscription
+
+    page = ["Страница с инструкцией (ссылка подставлена):", subscription.page_url(sub_url), ""] if sub_url else []
     lines = [
         "3X-UI Autopilot %s: данные для входа (файл виден только root)" % __version__, "",
         "Панель (через SSH-туннель): http://127.0.0.1:%d/%s/" % (plan.panel_port, plan.panel_path),
         "Туннель: " + tunnel_hint(plan),
         "Логин: " + plan.username, "Пароль: " + plan.password, "",
-        "Подписка пользователя %s (одна ссылка для всех приложений):" % user, sub_url, "",
+        "Подписка пользователя %s (одна ссылка для всех приложений):" % user, sub_url, "", *page,
         "Отдельные подключения пользователя %s:" % user, *links,
     ]
     return "\n".join(lines) + "\n"
@@ -510,6 +513,10 @@ def _install_locked(host, sni, xhttp_sni, mtproto_sni, no_ufw, total, restore=No
     ui.out("  " + t("install.scan"))
     if not ui.qr(sub_url):
         ui.hint(sub_url)
+    if sub_url:
+        ui.out()
+        ui.out("  " + ui.bold(t("install.page")))
+        ui.out("  " + ui.accent(subscription.page_url(sub_url)))
     ui.out()
     ui.out("  " + ui.bold(t("what.next")))
     ui.out("    " + t("install.next1", cmd=ui.accent("autopilot")))
