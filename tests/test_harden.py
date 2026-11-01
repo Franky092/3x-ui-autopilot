@@ -93,5 +93,37 @@ class WaitJailTest(unittest.TestCase):
             self.assertFalse(harden.wait_jail("sshd", attempts=3, sleep=lambda s: None))
 
 
+class BbrTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.old_root = os.environ.get("AUTOPILOT_ROOT")
+        os.environ["AUTOPILOT_ROOT"] = self.temp.name
+
+    def tearDown(self) -> None:
+        if self.old_root is None:
+            os.environ.pop("AUTOPILOT_ROOT", None)
+        else:
+            os.environ["AUTOPILOT_ROOT"] = self.old_root
+        self.temp.cleanup()
+
+    def _run(self, available: str):
+        def fake(cmd, **kwargs):
+            out = available if cmd[0] == "sysctl" and cmd[1] == "-n" else ""
+            return SimpleNamespace(returncode=0, stdout=out, stderr="")
+        return mock.patch.object(core, "run", side_effect=fake)
+
+    def test_bbr_is_written_when_available(self):
+        with self._run("reno cubic bbr\n"):
+            self.assertTrue(harden.setup_bbr())
+        text = core.path(harden.BBR_CONF).read_text()
+        self.assertIn("tcp_congestion_control = bbr", text)
+        self.assertIn("default_qdisc = fq", text)
+
+    def test_bbr_is_skipped_when_kernel_lacks_it(self):
+        with self._run("reno cubic\n"):
+            self.assertFalse(harden.setup_bbr())
+        self.assertFalse(core.path(harden.BBR_CONF).exists())
+
+
 if __name__ == "__main__":
     unittest.main()

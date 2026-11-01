@@ -6,6 +6,8 @@
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import re
 import ssl
@@ -31,8 +33,26 @@ _TG_SERVER = re.compile(r"^(tg://proxy\?.*?\bserver=)[^&#]+")
 _TG_PORT = re.compile(r"\bport=\d+")
 
 
+_ENDPOINT = re.compile(r"^(Endpoint\s*=\s*)(?:\[[^\]]*\]|[^:\s]+)(:\d+\s*)$", re.M)
+
+
+def _awg_with_host(link: str, host: str) -> str:
+    """AmneziaWG: ссылка vpn:// – это base64url от .conf, адрес сервера лежит в строке Endpoint."""
+    body = link[len("vpn://"):]
+    try:
+        conf = base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError):
+        return link
+    fixed = _ENDPOINT.sub(lambda m: m.group(1) + host + m.group(2), conf)
+    if fixed == conf:
+        return link
+    return "vpn://" + base64.urlsafe_b64encode(fixed.encode("utf-8")).decode("ascii").rstrip("=")
+
+
 def with_host(link: str, host: str) -> str:
     """Панель строит ссылки с адресом из запроса (localhost); подставляем публичный адрес сервера."""
+    if link.startswith("vpn://"):
+        return _awg_with_host(link, host)
     if link.startswith("tg://proxy"):
         # MTProto стоит за nginx на 443: внутренний порт панели клиенту не нужен
         return _TG_PORT.sub("port=443", _TG_SERVER.sub(lambda m: m.group(1) + host, link, count=1), count=1)

@@ -452,6 +452,7 @@ def _install_locked(host, sni, xhttp_sni, mtproto_sni, no_ufw, total, restore=No
     with ui.Step(t("install.firewall"), 5, total):
         setup_ufw(plan)  # порт 80 нужен уже для выпуска сертификата
         harden.setup_fail2ban(plan.ssh_ports[0] if plan.ssh_ports else None)
+        harden.setup_bbr()
     with ui.Step(t("install.cert"), 6, total):
         if restore is not None and restore.cert_dir is not None and cert.reusable(restore.cert_dir, plan.host):
             # Сертификат из копии ещё действует и выпущен на этот IP: берём его, а не просим новый (у Let's Encrypt есть лимиты).

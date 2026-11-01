@@ -108,6 +108,16 @@ class PanelClientTest(unittest.TestCase):
         self.assertEqual(panel.with_host("tg://proxy?port=18445&secret=ee1&server=localhost", "1.2.3.4"),
                          "tg://proxy?port=443&secret=ee1&server=1.2.3.4")
 
+    def test_amneziawg_link_endpoint_is_replaced(self):
+        import base64
+        conf = "[Interface]\nPrivateKey = k\nMTU = 1420\n\n[Peer]\nPublicKey = p\nAllowedIPs = 0.0.0.0/0, ::/0\nEndpoint = localhost:51821"
+        link = "vpn://" + base64.urlsafe_b64encode(conf.encode()).decode().rstrip("=")
+        fixed = panel.with_host(link, "203.0.113.5")
+        body = fixed[len("vpn://"):]
+        self.assertEqual(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)).decode(), conf.replace("localhost", "203.0.113.5"))
+        self.assertEqual(panel.with_host(fixed, "203.0.113.5"), fixed)
+        self.assertEqual(panel.with_host("vpn://!!!", "1.2.3.4"), "vpn://!!!")
+
     def test_set_client_fields_sends_safe_body(self):
         # у записи в списке числовой id БД и uuid: в запрос обновления они попадать не должны
         self.api.clients = lambda: [{"id": 7, "uuid": "u-1", "email": "a", "subId": "s", "totalGB": 5, "expiryTime": 0,

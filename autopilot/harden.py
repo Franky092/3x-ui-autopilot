@@ -136,6 +136,19 @@ def setup_fail2ban(ssh_port: int | None = None) -> None:
         core.die("fail2ban не запустил jail sshd.", "Смотрите: journalctl -u fail2ban и fail2ban-client -t")
 
 
+BBR_CONF = "etc/sysctl.d/90-autopilot-bbr.conf"
+
+
+def setup_bbr() -> bool:
+    """Включает BBR и fq: на каналах с потерями это заметно быстрее, чем cubic. Не получилось – не беда, установка идёт дальше."""
+    core.run(["modprobe", "tcp_bbr"], check=False)
+    available = core.run(["sysctl", "-n", "net.ipv4.tcp_available_congestion_control"], check=False)
+    if available.returncode or "bbr" not in available.stdout.split():
+        return False
+    core.write_file(core.path(BBR_CONF), "net.core.default_qdisc = fq\nnet.ipv4.tcp_congestion_control = bbr\n")
+    return core.run(["sysctl", "-p", str(core.path(BBR_CONF))], check=False).returncode == 0
+
+
 def wait_jail(name: str, *, attempts: int = 20, delay: float = 1.0, sleep=None) -> bool:
     """`systemctl restart` возвращается до готовности сервера fail2ban, поэтому ждём, пока jail ответит."""
     import time
