@@ -96,6 +96,8 @@ MANAGED = ("REALITY", "XHTTP", "VLESS-WS", "VMess-WS", "Trojan-gRPC", "Shadowsoc
 def add_user(api, name: str, *, gb: int = 0, days: int = 0, devices: int = 0) -> dict[str, Any]:
     """Создаёт пользователя на всех подключениях Autopilot."""
     valid_name(name)
+    if name == "relay":
+        core.die("Имя relay занято: так называется служебный пользователь каскада.")
     if any(c.get("email") == name for c in api.clients()):
         core.die("Пользователь %s уже есть." % name)
     ids = [int(i["id"]) for i in api.inbounds() if i.get("remark") in MANAGED]

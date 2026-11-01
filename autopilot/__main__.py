@@ -30,7 +30,7 @@ def _api_or_none():
 def user_rows(clients: list[dict]) -> list[list[str]]:
     now = time.time() * 1000
     rows = []
-    for c in sorted(clients, key=lambda x: str(x.get("email"))):
+    for c in sorted((c for c in clients if c.get("email") != "relay"), key=lambda x: str(x.get("email"))):
         traffic = c.get("traffic") or {}
         used = int(traffic.get("up", 0)) + int(traffic.get("down", 0))
         total = int(c.get("totalGB") or 0)
@@ -146,6 +146,8 @@ def cmd_user(args: argparse.Namespace) -> None:
     from . import inbounds
 
     api = _api()
+    if getattr(args, "name", None) == "relay" and args.action in ("del", "on", "off"):
+        core.die("relay – служебный пользователь каскада.", "Выключить каскад: autopilot relay off")
     if args.action == "add":
         client = inbounds.add_user(api, args.name, gb=args.gb, days=args.days, devices=args.devices)
         _mieru_user_added(client["email"])
@@ -449,6 +451,102 @@ def cmd_dns(args: argparse.Namespace) -> None:
         ui.info(t("dns.doh.off"))
 
 
+def _restart_panel() -> None:
+    from . import installer
+
+    core.systemctl("restart", "x-ui", check=True)
+    installer.wait_panel(_api())
+
+
+def _sync_nginx(api) -> None:
+    from . import cert, sync
+
+    fullchain, key = cert.paths()
+    sync.apply(api, str(fullchain), str(key))
+
+
+def cmd_relay(args: argparse.Namespace) -> None:
+    from . import chain, restore
+
+    api = _api()
+    host = _api_host() or core.die("Установка не найдена.", "Сначала выполните: autopilot install")
+    if args.action in ("on", "token"):
+        chain.check_host(host)
+        with ui.Step(t("relay.working")):
+            if args.action == "on":
+                chain.relay_on(api, host, sni=args.sni)
+                _sync_nginx(api)
+            token = chain.make_token(api, host)
+        ui.ok(t("relay.on"))
+        ui.out()
+        ui.out("  " + token)
+        ui.out()
+        ui.hint(t("relay.run"))
+        ui.hint(t("relay.entry.hint"))
+    elif args.action == "off":
+        if chain.relay_state(api) is not None:
+            ui.warn(t("relay.off.warn"))
+        removed = chain.relay_off(api)
+        if removed:
+            chain.set_entry(api, None, host)
+            _sync_nginx(api)
+        ui.ok(t("relay.off") if removed else t("relay.off.none"))
+    elif args.action == "entry":
+        if not args.value:
+            core.die("autopilot relay entry IP_ВХОДА  (или «off», чтобы убрать)")
+        entry = None if args.value == "off" else args.value
+        changed = chain.set_entry(api, entry, host)
+        ui.ok(t("relay.entry.cleared") if entry is None else t("relay.entry.set", items=", ".join(changed)))
+    else:
+        state = chain.relay_state(api)
+        if state is None:
+            ui.info(t("relay.status.off"))
+            return
+        entries = [p["dest"] for i in api.inbounds() if i.get("remark") == "REALITY"
+                   for p in restore._load(i.get("streamSettings")).get("externalProxy", []) if p.get("remark") == "via-entry"]
+        ui.info(t("relay.status.on", sni=state["sni"], entry=entries[0] if entries else t("relay.entry.none")))
+
+
+def cmd_chain(args: argparse.Namespace) -> None:
+    from . import chain
+
+    if args.action == "set":
+        token = args.value or ui.ask_secret(t("chain.pick"))
+        data = chain.decode_token(token)
+        api = _api()
+        host = _api_host()
+        if not args.yes and not ui.confirm(t("chain.confirm"), False):
+            ui.out("  " + t("cancel"))
+            return
+        if not chain.exit_reachable(data["exit"]["host"]):
+            ui.warn(t("chain.noreach"))
+        with ui.Step(t("chain.working")):
+            changes = chain.enable(api, data, _restart_panel)
+            _sync_nginx(api)
+        ui.ok(t("chain.on", host=data["exit"]["host"]))
+        ui.info(t("chain.users", added=len(changes["users_added"]), replaced=len(changes["users_replaced"]),
+                  removed=len(changes["users_removed"])))
+        ui.warn(t("chain.warn.keys"))
+        ui.warn(t("chain.warn.block"))
+        if host:
+            ui.hint(t("chain.entry", host=host))
+    elif args.action == "refresh":
+        ui.ok(t("chain.refreshed") if chain.refresh(_api(), _restart_panel) else t("chain.off.none"))
+    elif args.action == "off":
+        done = chain.disable(_restart_panel)
+        ui.ok(t("chain.off") if done else t("chain.off.none"))
+    else:
+        exit_ = chain.active_exit(chain.read_template())
+        if exit_ is None:
+            ui.info(t("chain.status.off"))
+            return
+        up = chain.exit_reachable(str(exit_.get("host", "")))
+        ui.info(t("chain.status.on", host=exit_.get("host", "?"), sni=exit_.get("sni", "?"),
+                  state=t("chain.reach") if up else t("chain.noreach")))
+        if chain.stale_rule(_api(), chain.read_template()):
+            ui.warn(t("chain.stale"))
+
+
 def cmd_cert(args: argparse.Namespace) -> None:
     from . import cert
 
@@ -498,6 +596,7 @@ def menu_main() -> None:
             ("notify", t("menu.notify"), t("menu.notify.d")),
             ("backup", t("menu.backup"), t("menu.backup.d")),
             ("router", t("menu.router"), t("menu.router.d")),
+            ("chain", t("menu.chain"), t("menu.chain.d")),
             ("ssh", t("menu.ssh"), t("menu.ssh.d")),
             ("lang", t("menu.lang"), t("menu.lang.d")),
         ], back=t("exit"))
@@ -506,7 +605,7 @@ def menu_main() -> None:
         try:
             {"users": menu_users, "status": show_status, "stats": show_stats, "notify": menu_notify,
              "backup": menu_backup, "router": lambda: cmd_router(argparse.Namespace(app=None, user="admin")),
-             "ssh": menu_ssh, "lang": menu_lang}[choice]()
+             "chain": menu_chain, "ssh": menu_ssh, "lang": menu_lang}[choice]()
         except core.Error as exc:
             ui.error(str(exc), exc.hint)
         if choice in ("status", "stats"):
@@ -557,7 +656,7 @@ def menu_users() -> None:
 
 
 def _pick_user(api) -> str | None:
-    names = sorted(str(c.get("email")) for c in api.clients())
+    names = sorted(str(c.get("email")) for c in api.clients() if c.get("email") != "relay")
     return ui.menu(t("users.pick"), [(n, n, "") for n in names], back=t("back")) if names else None
 
 
@@ -581,6 +680,25 @@ def menu_backup() -> None:
     elif choice != "now":
         return
     cmd_backup(ns)
+    ui.ask("Enter", "")
+
+
+def menu_chain() -> None:
+    choice = ui.menu(t("menu.chain"), [("relay", "relay on / token", t("relay.run")), ("chain", "chain set", t("chain.pick")),
+                                       ("rstatus", "relay status", ""), ("cstatus", "chain status", ""),
+                                       ("coff", "chain off", "")], back=t("back"))
+    if choice == "relay":
+        cmd_relay(argparse.Namespace(action="on", value=None, sni=None))
+    elif choice == "chain":
+        cmd_chain(argparse.Namespace(action="set", value=None, yes=False))
+    elif choice == "rstatus":
+        cmd_relay(argparse.Namespace(action="status", value=None, sni=None))
+    elif choice == "cstatus":
+        cmd_chain(argparse.Namespace(action="status", value=None, yes=False))
+    elif choice == "coff":
+        cmd_chain(argparse.Namespace(action="off", value=None, yes=False))
+    else:
+        return
     ui.ask("Enter", "")
 
 
@@ -696,6 +814,18 @@ def build_parser() -> argparse.ArgumentParser:
     d = sub.add_parser("dns", help="own DNS-over-HTTPS / свой DNS-over-HTTPS")
     d.add_argument("action", choices=["status", "on", "off"], nargs="?", default="status")
     d.set_defaults(func=cmd_dns)
+
+    rl = sub.add_parser("relay", help="cascade exit (main server) / выход каскада (основной сервер)")
+    rl.add_argument("action", choices=["on", "off", "token", "entry", "status"], nargs="?", default="status")
+    rl.add_argument("value", nargs="?", help="entry server IP for «entry», or «off»")
+    rl.add_argument("--sni", help="cover site for the Relay connection")
+    rl.set_defaults(func=cmd_relay)
+
+    ch = sub.add_parser("chain", help="cascade entry (backup server) / вход каскада (резервный сервер)")
+    ch.add_argument("action", choices=["set", "off", "status", "refresh"], nargs="?", default="status")
+    ch.add_argument("value", nargs="?", help="token from «autopilot relay on»")
+    ch.add_argument("--yes", "-y", action="store_true")
+    ch.set_defaults(func=cmd_chain)
 
     lg = sub.add_parser("lang", help="language / язык")
     lg.add_argument("code")

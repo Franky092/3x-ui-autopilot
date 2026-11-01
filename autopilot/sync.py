@@ -6,7 +6,7 @@ from typing import Any
 
 from . import core, nginx
 
-SNI_REMARKS = ("REALITY", "XHTTP")
+SNI_REMARKS = ("REALITY", "XHTTP", "Relay")
 
 
 def _load(raw: Any) -> dict[str, Any]:

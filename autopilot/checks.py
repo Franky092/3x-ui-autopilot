@@ -8,7 +8,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
-from . import cert, core, dns, installer, nginx, subscription, sync, uninstaller
+from . import cert, chain, core, dns, installer, nginx, subscription, sync, uninstaller
 
 
 @dataclass
@@ -198,6 +198,23 @@ def run_checks(api=None, *, host: str | None = None) -> list[Problem]:
                 problems.append(Problem("subscription", "ok" if good_sub else "bad",
                                         "подписка отвечает" if good_sub else "подписка не отвечает",
                                         "Проверить службу панели и настройки подписки." if not good_sub else ""))
+
+    try:
+        exit_ = chain.active_exit(chain.read_template())
+    except core.Error:
+        exit_ = None
+    if exit_ is not None:
+        up = chain.exit_reachable(str(exit_.get("host", "")))
+        problems.append(Problem("chain", "ok" if up else "bad",
+                                "выход каскада %s отвечает" % exit_.get("host") if up else
+                                "выход каскада %s не отвечает: соединения через этот сервер не работают" % exit_.get("host"),
+                                "Проверьте сервер-выход: autopilot status на нём." if not up else ""))
+        try:
+            if chain.stale_rule(api, chain.read_template()) if api is not None else False:
+                problems.append(Problem("chain-tags", "bad", "правило каскада не совпадает с подключениями: часть трафика идёт напрямую",
+                                        "Выполните: autopilot chain refresh"))
+        except core.Error:
+            pass
 
     try:
         result = core.run(["ufw", "status"], check=False)
