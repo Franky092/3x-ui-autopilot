@@ -9,8 +9,8 @@
 Установка одной командой от root. Сначала скачайте скрипт и сверьте его контрольную сумму с указанной в описании релиза на GitHub (страница релиза и сам файл лежат в разных местах, поэтому подмена одного из них будет заметна):
 
 ```bash
-curl -fsSLo install.sh https://raw.githubusercontent.com/Franky092/3x-ui-autopilot/v0.4.1/install.sh
-echo "95c4490d6c4091116877276b656d2ab48158952e3062e55d109eadc023962c88  install.sh" | sha256sum -c - && sh install.sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/Franky092/3x-ui-autopilot/v0.4.2/install.sh
+echo "d01fe8dcd6ebfeda0bd8a5480703bf22c5d9d4388ca6fafc2f771aabf587a5e8  install.sh" | sha256sum -c - && sh install.sh
 ```
 
 `install.sh` скачивает архив релиза, сверяет его SHA-256 (она записана внутри скрипта) и запускает установщик. Параметры добавляются в конец: `sh install.sh --host 203.0.113.10 --sni www.microsoft.com` (`--xhttp-sni`, `--mtproto-sni` и `--no-ufw` тоже есть). Установщик покажет команду SSH-туннеля, локальный адрес панели и ссылку подписки. Учётные данные сохраняются в `/root/autopilot.txt` с правами только для root. Восстановление из копии: `sh install.sh restore /путь/к/копии.tar.gz`.
