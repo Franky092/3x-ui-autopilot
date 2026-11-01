@@ -1,5 +1,9 @@
 # Изменения
 
+## 0.4.3
+
+- Свой DNS-over-HTTPS: unbound отдаёт DoH через nginx на 443 по секретному пути (`https://IP/<путь>/dns-query`). Включён при установке, на готовом сервере: `autopilot dns on`; адрес показывает `autopilot dns` и `/root/autopilot.txt`.
+
 ## 0.4.2
 
 - Исправлена ссылка `vpn://` для AmneziaWG: в ней оставался адрес `localhost`, и приложение Amnezia не могло подключиться.

@@ -44,12 +44,15 @@ def layout_from_inbounds(inbounds: list[dict[str, Any]], cert_file: str, key_fil
     return layout
 
 
-def apply(api, cert_file: str, key_file: str) -> None:
+def apply(api, cert_file: str, key_file: str, doh_path: str | None = None) -> None:
     """Пересобирает конфиг nginx по текущим подключениям и подписке панели и перечитывает его."""
-    from . import subscription
+    from . import dns, subscription
 
     settings = api.settings()
     sub_paths = subscription.paths(settings) if settings.get("subEnable") else []
-    nginx.write(layout_from_inbounds(api.inbounds(), cert_file, key_file, sub_paths=sub_paths,
-                                     sub_port=int(settings.get("subPort") or 0)))
+    layout = layout_from_inbounds(api.inbounds(), cert_file, key_file, sub_paths=sub_paths,
+                                  sub_port=int(settings.get("subPort") or 0))
+    layout.doh_path = dns.saved_doh_path() if doh_path is None else doh_path
+    layout.doh_port = dns.DOH_PORT if layout.doh_path else 0
+    nginx.write(layout)
     nginx.enable()

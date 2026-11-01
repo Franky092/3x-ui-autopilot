@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import ipaddress
+import json
+import re
 import secrets
 import socket
 import struct
@@ -17,19 +19,47 @@ from . import core
 
 CONF = "etc/unbound/unbound.conf.d/autopilot.conf"
 LOCAL_PORT = 5353
+DOH_PORT = 8053  # DNS-over-HTTPS на loopback без TLS (HTTP/2 в открытом виде): наружу его отдаёт nginx на 443
+_DOH_PATH = re.compile(r"^/[A-Za-z0-9]{8,64}/dns-query$")
 
 
-def config_text(host: str) -> str:
+def new_doh_path() -> str:
+    """Секретный путь DoH: без него сервер стал бы открытым рекурсором для всего интернета."""
+    return "/%s/dns-query" % secrets.token_hex(8)
+
+
+def valid_doh_path(path: str) -> bool:
+    return bool(_DOH_PATH.match(path or ""))
+
+
+def doh_url(host: str, path: str) -> str:
+    return "https://%s%s" % (host, path)
+
+
+def saved_doh_path() -> str:
+    """Путь DoH из etc/autopilot/install.json; пусто, если DoH не включён."""
+    try:
+        value = str(json.loads(core.path(core.CONF_DIR, "install.json").read_text(encoding="utf-8")).get("doh_path") or "")
+    except (OSError, ValueError, AttributeError):
+        return ""
+    return value if valid_doh_path(value) else ""
+
+
+def config_text(host: str, doh_path: str = "") -> str:
     try:
         address = str(ipaddress.IPv4Address(host))
     except ValueError:
         core.die("Для DNS нужен IPv4-адрес сервера.")
         raise
+    if doh_path and not valid_doh_path(doh_path):
+        core.die("Недопустимый путь DoH: %r" % doh_path)
+    doh = ("    interface: 127.0.0.1@%d\n    https-port: %d\n    http-notls-downstream: yes\n    http-endpoint: \"%s\"\n"
+           % (DOH_PORT, DOH_PORT, doh_path)) if doh_path else ""
     return """# Создано автоматически (3X-UI Autopilot). Ручные правки будут перезаписаны.
 server:
     interface: 127.0.0.1@%(port)d
     interface: %(host)s@53
-    access-control: 127.0.0.0/8 allow
+%(doh)s    access-control: 127.0.0.0/8 allow
     access-control: %(host)s/32 allow
     access-control: 0.0.0.0/0 refuse
     access-control: ::/0 refuse
@@ -45,7 +75,7 @@ server:
     log-queries: no
     log-replies: no
     verbosity: 0
-""" % {"port": LOCAL_PORT, "host": address}
+""" % {"port": LOCAL_PORT, "host": address, "doh": doh}
 
 
 # --- минимальный DNS-клиент для проверки (без dig) -------------------------------------------------
@@ -94,11 +124,12 @@ def wait_ready(*, attempts: int = 20, delay: float = 1.0, sleep=time.sleep, ask=
     return False
 
 
-def setup(host: str) -> None:
-    """Пишет конфиг, проверяет его `unbound-checkconf`, включает службу и дожидается настоящего ответа."""
+def setup(host: str, doh_path: str | None = None) -> None:
+    """Пишет конфиг, проверяет его `unbound-checkconf`, включает службу и дожидается настоящего ответа.
+    doh_path=None – оставить DoH таким, как записано в состоянии установки."""
     target = core.path(CONF)
     previous = target.read_text(encoding="utf-8") if target.exists() else None
-    core.write_file(target, config_text(host), 0o644)
+    core.write_file(target, config_text(host, saved_doh_path() if doh_path is None else doh_path), 0o644)
     check = core.run(["unbound-checkconf"], check=False)
     if check.returncode != 0:
         _rollback(target, previous)

@@ -34,6 +34,8 @@ class Layout:
     key_file: str = ""
     sub_paths: list[str] = field(default_factory=list)  # пути подписки (основной, JSON, Clash)
     sub_port: int = 0                                    # loopback-порт сервера подписки панели
+    doh_path: str = ""                                   # секретный путь DNS-over-HTTPS (unbound на loopback)
+    doh_port: int = 0
 
 
 def _check(layout: Layout) -> None:
@@ -53,6 +55,8 @@ def _check(layout: Layout) -> None:
             core.die("Недопустимый путь подписки: %r" % value)
     if layout.sub_paths and not 1 <= layout.sub_port <= 65535:
         core.die("Нужен порт сервера подписки.")
+    if layout.doh_path and (not re.match(r"^/[A-Za-z0-9]{8,64}/dns-query$", layout.doh_path) or not 1 <= layout.doh_port <= 65535):
+        core.die("Недопустимый маршрут DoH: %r" % layout.doh_path)
 
 
 def render(layout: Layout) -> str:
@@ -90,6 +94,12 @@ def render(layout: Layout) -> str:
             proxy_set_header User-Agent $http_user_agent;
             proxy_set_header X-Forwarded-Proto https;
         }""" % (sub, layout.sub_port))
+    if layout.doh_path:  # unbound сам принимает только этот путь (http-endpoint), остальное получает 404
+        locations.append("""        location = %s {
+            grpc_pass grpc://127.0.0.1:%d;
+            grpc_read_timeout 30s;
+            grpc_send_timeout 30s;
+        }""" % (layout.doh_path, layout.doh_port))
     return """# Создано автоматически (3X-UI Autopilot). Ручные правки будут перезаписаны.
 worker_processes auto;
 worker_rlimit_nofile 8192;

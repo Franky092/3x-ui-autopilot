@@ -429,6 +429,26 @@ def cmd_uninstall(args: argparse.Namespace) -> None:
         ui.hint(t("uninstall.kept", path=path))
 
 
+def cmd_dns(args: argparse.Namespace) -> None:
+    from . import cert, dns, installer, sync
+
+    host = _api_host() or core.die("Установка не найдена.", "Сначала выполните: autopilot install")
+    current = dns.saved_doh_path()
+    if args.action in ("on", "off"):
+        path = (current or dns.new_doh_path()) if args.action == "on" else ""
+        with ui.Step(t("dns.changing")):
+            dns.setup(host, path)
+            installer.update_state(doh_path=path)
+            fullchain, key = cert.paths()
+            sync.apply(_api(), str(fullchain), str(key), path)
+        current = path
+    if current:
+        ui.ok(t("dns.doh.on"))
+        ui.out("  " + dns.doh_url(host, current))
+    else:
+        ui.info(t("dns.doh.off"))
+
+
 def cmd_cert(args: argparse.Namespace) -> None:
     from . import cert
 
@@ -672,6 +692,10 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("cert", help="certificate / сертификат")
     c.add_argument("action", choices=["status", "renew", "reload", "auto"], nargs="?", default="status")
     c.set_defaults(func=cmd_cert)
+
+    d = sub.add_parser("dns", help="own DNS-over-HTTPS / свой DNS-over-HTTPS")
+    d.add_argument("action", choices=["status", "on", "off"], nargs="?", default="status")
+    d.set_defaults(func=cmd_dns)
 
     lg = sub.add_parser("lang", help="language / язык")
     lg.add_argument("code")

@@ -9,8 +9,8 @@
 Установка одной командой от root. Сначала скачайте скрипт и сверьте его контрольную сумму с указанной в описании релиза на GitHub (страница релиза и сам файл лежат в разных местах, поэтому подмена одного из них будет заметна):
 
 ```bash
-curl -fsSLo install.sh https://raw.githubusercontent.com/Franky092/3x-ui-autopilot/v0.4.2/install.sh
-echo "d01fe8dcd6ebfeda0bd8a5480703bf22c5d9d4388ca6fafc2f771aabf587a5e8  install.sh" | sha256sum -c - && sh install.sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/Franky092/3x-ui-autopilot/v0.4.3/install.sh
+echo "0c9d3134500717f062803d035a9e697656c5c3b19cb5c032a4546ab1da1b516f  install.sh" | sha256sum -c - && sh install.sh
 ```
 
 `install.sh` скачивает архив релиза, сверяет его SHA-256 (она записана внутри скрипта) и запускает установщик. Параметры добавляются в конец: `sh install.sh --host 203.0.113.10 --sni www.microsoft.com` (`--xhttp-sni`, `--mtproto-sni` и `--no-ufw` тоже есть). Установщик покажет команду SSH-туннеля, локальный адрес панели и ссылку подписки. Учётные данные сохраняются в `/root/autopilot.txt` с правами только для root. Восстановление из копии: `sh install.sh restore /путь/к/копии.tar.gz`.
@@ -52,6 +52,7 @@ TCP-подключения на 443 выбираются по SNI. 80/TCP исп
 | `autopilot check` / `autopilot check --fix` | Глубокая проверка (службы, порты, nginx, сертификат, DNS, подписка, ufw, диск); `--fix` безопасно чинит найденное |
 | `autopilot net` | Показать подключения, порты и сайты-прикрытия |
 | `autopilot net site reality\|xhttp\|mtproto САЙТ` | Сменить сайт-прикрытие (сайт должен поддерживать TLS 1.3 и HTTP/2, у каждого подключения свой) |
+| `autopilot dns [on\|off]` | Свой DNS-over-HTTPS: адрес вида `https://IP/<секретный-путь>/dns-query` для приложений с настройкой DoH; путь секретный, иначе сервер стал бы открытым DNS |
 | `autopilot net port ИМЯ ПОРТ` | Сменить публичный порт Shadowsocks, Hysteria2, TUIC или AmneziaWG (правила ufw меняются сами) |
 | `autopilot update [--check]` | Обновить панель до закреплённой версии: с копией до начала и откатом, если панель не поднялась |
 | `autopilot notify setup` | Настроить необязательные уведомления Telegram |

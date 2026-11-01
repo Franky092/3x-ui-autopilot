@@ -301,6 +301,8 @@ def write_state(plan: Plan, inbounds: list[dict]) -> None:
         "cert_kind": plan.extra.get("cert_kind", "unknown"),
         "inbounds": inbounds, "installed_at": int(time.time()),
     }
+    if plan.extra.get("doh_path"):
+        data["doh_path"] = plan.extra["doh_path"]
     core.write_file(core.path(core.CONF_DIR, "install.json"), json.dumps(data, ensure_ascii=False, indent=2) + "\n", 0o600)
 
 
@@ -338,7 +340,7 @@ def choose_sni(wanted: str | None, *, exclude: tuple[str, ...] = ()) -> str:
 
 
 def credentials_text(plan: Plan, links: list[str], sub_url: str = "", user: str = "admin") -> str:
-    from . import subscription
+    from . import dns, subscription
 
     page = ["Страница с инструкцией (ссылка подставлена):", subscription.page_url(sub_url), ""] if sub_url else []
     lines = [
@@ -347,6 +349,8 @@ def credentials_text(plan: Plan, links: list[str], sub_url: str = "", user: str 
         "Туннель: " + tunnel_hint(plan),
         "Логин: " + plan.username, "Пароль: " + plan.password, "",
         "Подписка пользователя %s (одна ссылка для всех приложений):" % user, sub_url, "", *page,
+        *(["DNS-over-HTTPS (свой, для приложений с настройкой DoH): " + dns.doh_url(plan.host, plan.extra["doh_path"]), ""]
+          if plan.extra.get("doh_path") else []),
         "Отдельные подключения пользователя %s:" % user, *links,
     ]
     return "\n".join(lines) + "\n"
@@ -464,8 +468,11 @@ def _install_locked(host, sni, xhttp_sni, mtproto_sni, no_ufw, total, restore=No
     fullchain, key = cert.paths()
     with ui.Step(t("install.dns"), 7, total):
         try:
-            dns.setup(plan.host)
+            doh_path = str(restore.state.get("doh_path") or "") if restore is not None else ""
+            doh_path = doh_path if dns.valid_doh_path(doh_path) else dns.new_doh_path()
+            dns.setup(plan.host, doh_path)
             plan.extra["awg_dns"] = plan.host
+            plan.extra["doh_path"] = doh_path
         except core.Error as exc:  # без своего DNS остальное всё равно работает: AmneziaWG временно получит публичный
             ui.warn(t("install.dns.fail", reason=str(exc)[:100]))
     with ui.Step(t("install.restore.inbounds" if restore is not None else "install.inbounds"), 8, total):
@@ -478,7 +485,7 @@ def _install_locked(host, sni, xhttp_sni, mtproto_sni, no_ufw, total, restore=No
         subscription.configure(api, plan.host)
         core.systemctl("restart", "x-ui", check=True)  # сервер подписки читает настройки при старте
         wait_panel(api)
-        sync.apply(api, str(fullchain), str(key))
+        sync.apply(api, str(fullchain), str(key), plan.extra.get("doh_path", ""))
     with ui.Step(t("install.user"), 10, total):
         if restore is None:
             if any(c.get("email") == "admin" for c in api.clients()):

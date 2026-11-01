@@ -33,6 +33,14 @@ class RenderTest(unittest.TestCase):
         self.assertEqual(conf.count("proxy_pass http://127.0.0.1:2096;"), 3)
         self.assertIn("proxy_set_header User-Agent $http_user_agent;", conf)
 
+    def test_doh_location_only_when_enabled(self):
+        self.assertNotIn("dns-query", nginx.render(layout()))
+        conf = nginx.render(layout(doh_path="/0123456789abcdef/dns-query", doh_port=8053))
+        self.assertIn("location = /0123456789abcdef/dns-query {", conf)
+        self.assertIn("grpc_pass grpc://127.0.0.1:8053;", conf)
+        with self.assertRaises(core.Error):
+            nginx.render(layout(doh_path="/x;y/dns-query", doh_port=8053))
+
     def test_tls_files_and_loopback_only(self):
         conf = nginx.render(layout())
         self.assertIn("ssl_certificate /c.pem;", conf)

@@ -19,6 +19,23 @@ class ConfigTest(unittest.TestCase):
         self.assertIn("access-control: 0.0.0.0/0 refuse", conf)
         self.assertNotIn("forward-zone", conf)  # никаких чужих серверов-пересылщиков
 
+    def test_doh_is_off_by_default_and_secret_when_on(self):
+        self.assertNotIn("https-port", dns.config_text("203.0.113.5"))
+        path = dns.new_doh_path()
+        self.assertTrue(dns.valid_doh_path(path))
+        conf = dns.config_text("203.0.113.5", path)
+        self.assertIn("interface: 127.0.0.1@%d" % dns.DOH_PORT, conf)
+        self.assertIn("http-notls-downstream: yes", conf)
+        self.assertIn('http-endpoint: "%s"' % path, conf)
+        self.assertIn("access-control: 0.0.0.0/0 refuse", conf)  # DoH по-прежнему только через nginx на loopback
+        self.assertEqual(dns.doh_url("203.0.113.5", path), "https://203.0.113.5" + path)
+
+    def test_hostile_doh_path_rejected(self):
+        for bad in ("/dns-query", '/abcdef12/dns-query"\n  forward-zone:', "/short/dns-query", "/abc/../dns-query"):
+            self.assertFalse(dns.valid_doh_path(bad))
+            with self.assertRaises(core.Error):
+                dns.config_text("203.0.113.5", bad)
+
     def test_hostile_host_rejected(self):
         for bad in ("1.2.3.4\n  interface: 0.0.0.0", "example.com", "::1", ""):
             with self.assertRaises(core.Error):

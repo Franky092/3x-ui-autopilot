@@ -6,10 +6,10 @@
 # кроме python3 (если его нет) и curl.
 set -eu
 
-RELEASE_VERSION="0.4.2"
+RELEASE_VERSION="0.4.3"
 REPOSITORY="Franky092/3x-ui-autopilot"
 # SHA-256 несжатого tar-архива релиза: пересчитывается командой `python3 tools/release.py --write`.
-TARBALL_SHA256="6581d6abd1a85a5e59ade04bd978582e013644443dda59ae8d03730af44b92e1"
+TARBALL_SHA256="857c4a9f0cdba7c9b67ecdd05a46f8a5ed5e49117623a014509a616a68e925a4"
 URL="https://github.com/$REPOSITORY/releases/download/v$RELEASE_VERSION/autopilot-$RELEASE_VERSION.tar.gz"
 
 die() { printf 'x   %s\n' "$*" >&2; exit 1; }
